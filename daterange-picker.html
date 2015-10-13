@@ -13,11 +13,16 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 <script src="../moment/min/moment.min.js"></script>
 
 <!--
-An element providing a solution to no problem in particular.
+Polymer 1.0+ Date Range Selector
 
 Example:
 
     <daterange-picker></daterange-picker>
+
+    By default the calendar selector opens to the right, you can have it open to the left by doing the following:
+
+    <daterange-picker halign="left"></daterange-picker>
+
 
 @group daterange-picker
 @element daterange-picker
@@ -128,23 +133,23 @@ Example:
       }
 
     </style>
-    <input id="triggerRange" value="{{selectedRange}}" on-click="toggle" class="date" readonly>
-    <template is="dom-if" if="{{opened}}">
+    <input id="triggerRange" value="{{_selectedView}}" on-click="_toggle" class="date" readonly>
+    <template is="dom-if" if="{{_opened}}">
       <div id="targetShow" class$="{{halign}}">
           <div class="ranges">
-            <iron-selector attr-for-selected="name" selected="{{selected}}">
-              <div on-click="todayClicked" name="today">Today</div>
-              <div on-click="yesterdayClicked" name="yesterday">Yesterday</div>
-              <div on-click="last7DaysClicked" name="last7Days">Last 7 Days</div>
-              <div on-click="last30DaysClicked" name="last30Days">Last 30 Days</div>
-              <div on-click="thisMonthClicked" name="thisMonth">This Month</div>
-              <div on-click="lastMonthClicked" name="lastMonth">Last Month</div>
-              <div on-click="customClicked" name="custom">Custom</div>
+            <iron-selector attr-for-selected="name" selected="{{_selected}}">
+              <div on-click="_todayClicked" name="today">Today</div>
+              <div on-click="_yesterdayClicked" name="yesterday">Yesterday</div>
+              <div on-click="_last7DaysClicked" name="last7Days">Last 7 Days</div>
+              <div on-click="_last30DaysClicked" name="last30Days">Last 30 Days</div>
+              <div on-click="_thisMonthClicked" name="thisMonth">This Month</div>
+              <div on-click="_lastMonthClicked" name="lastMonth">Last Month</div>
+              <div on-click="_customClicked" name="custom">Custom</div>
             </iron-selector>
           </div>
-          <template is="dom-if" if="{{showRanges}}">
-            <date-picker-calendar start="start" start-date="{{startDate}}" end-date="{{endDate}}"></date-picker-calendar>
-            <date-picker-calendar end="end" start-date="{{startDate}}" end-date="{{endDate}}"></date-picker-calendar>
+          <template is="dom-if" if="{{_showRanges}}">
+            <date-picker-calendar start="start" start-date="{{_startDate}}" end-date="{{_endDate}}"></date-picker-calendar>
+            <date-picker-calendar end="end" start-date="{{_startDate}}" end-date="{{_endDate}}"></date-picker-calendar>
           </template>
       </div>
     </template>
@@ -162,132 +167,139 @@ Example:
         value: 'right',
         notify: true
       },
-      selected: {
+      selectedRange: {
+        // object shows the selected values
+        type: Object,
+        value: {},
+        notify: true,
+        reflectToAttribute: true,
+        computed: '_computeRange(_startDate, _endDate)'
+      },
+      _selected: {
         type: String,
         value: '',
         observer: '_selectionChanged'
       },
-      selectedDate: {
+      _selectedDate: {
         type: String,
         value: ''
       },
-      startDate: {
-        type: String,
-        notify: true,
-        reflectToAttribute: true,
-        value: ''
-      },
-      endDate: {
+      _startDate: {
         type: String,
         notify: true,
         reflectToAttribute: true,
         value: ''
       },
-      opened: {
+      _endDate: {
+        type: String,
+        notify: true,
+        reflectToAttribute: true,
+        value: ''
+      },
+      _opened: {
         type: Boolean,
         value: false,
         notify: true,
         observer: '_openedChanged'
       },
-      relatedTarget: {
-        type: Object,
-        value: {}
-      },
-      showRanges: {
+      _showRanges: {
         type: Boolean,
         value: false
       },
-      selectedRange: {
+      _selectedView: {
         type: String,
-        computed: 'computeDateRange(startDate, endDate)'
+        computed: '_computeDateRange(_startDate, _endDate)'
       }
     },
     _selectionChanged: function(selected) {
-      this.showRanges = false;
-      if(selected === "custom") { this.showRanges = true; }
+      this._showRanges = false;
+      if(selected === "custom") { this._showRanges = true; }
     },
     ready: function() {
-      this.startDate = moment().subtract(30, "days").format("L");
-      this.endDate = moment().format("L");
-      this.selected = "last30Days";
+      this._startDate = moment().subtract(30, "days").format("L");
+      this._endDate = moment().format("L");
+      this._selected = "last30Days";
     },
-    computeDateRange: function(startDate, endDate) {
+    _computeRange: function(startDate, endDate) {
+      return {"startDate":startDate, "endDate":endDate};
+    },
+    _computeDateRange: function(startDate, endDate) {
       return startDate + ' to ' + endDate;
     },
-    todayClicked: function() {
-      this.startDate = moment().format("L");
-      this.endDate = moment().format("L");
-      this.selected = "today";
-      this.toggle();
+    _todayClicked: function() {
+      this._startDate = moment().format("L");
+      this._endDate = moment().format("L");
+      this._selected = "today";
+      this._toggle();
     },
-    yesterdayClicked: function() {
-      this.startDate = moment().subtract(1, "days").format("L");
-      this.endDate = moment().subtract(1, "days").format("L");
-      this.selected = "yesterday";
-      this.toggle();
+    _yesterdayClicked: function() {
+      this._startDate = moment().subtract(1, "days").format("L");
+      this._endDate = moment().subtract(1, "days").format("L");
+      this._selected = "yesterday";
+      this._toggle();
     },
-    last7DaysClicked: function() {
-      this.startDate = moment().subtract(6, "days").format("L");
-      this.endDate = moment().format("L");
-      this.selected = "last7Days";
-      this.toggle();
+    _last7DaysClicked: function() {
+      this._startDate = moment().subtract(6, "days").format("L");
+      this._endDate = moment().format("L");
+      this._selected = "last7Days";
+      this._toggle();
     },
-    last30DaysClicked: function() {
-      this.startDate = moment().subtract(30, "days").format("L");
-      this.endDate = moment().format("L");
-      this.selected = "last30Days";
-      this.toggle();
+    _last30DaysClicked: function() {
+      this._startDate = moment().subtract(30, "days").format("L");
+      this._endDate = moment().format("L");
+      this._selected = "last30Days";
+      this._toggle();
     },
-    thisMonthClicked: function() {
-      this.startDate = moment().startOf('month').format("L");
-      this.endDate = moment().endOf('month').format("L");
-      this.selected = "thisMonth";
-      this.toggle();
+    _thisMonthClicked: function() {
+      this._startDate = moment().startOf('month').format("L");
+      this._endDate = moment().endOf('month').format("L");
+      this._selected = "thisMonth";
+      this._toggle();
     },
-    lastMonthClicked: function() {
-      this.startDate = moment().subtract(1, "months").startOf('month').format("L");
-      this.endDate = moment().subtract(1, "months").endOf('month').format("L");
-      this.selected = "lastMonth";
-      this.toggle();
+    _lastMonthClicked: function() {
+      this._startDate = moment().subtract(1, "months").startOf('month').format("L");
+      this._endDate = moment().subtract(1, "months").endOf('month').format("L");
+      this._selected = "lastMonth";
+      this._toggle();
     },
-    customClicked: function() {
-      this.selected = "custom";
+    _customClicked: function() {
+      this._selected = "custom";
     },
-    closeCanceled: false,
+    _closeCanceled: false,
     _openedChanged: function(newVal) {
       var picker = this;
       if (!this.clickListener) {
         this.clickListener = function (e) {
           if (!e.model) {
             picker.async(function () {
-              if (!picker.closeCanceled) picker.close(); else picker.closeCanceled = false
+              if (!picker._closeCanceled) picker._close(); else picker._closeCanceled = false
             });
           }
         };
       }
 
       if (newVal === true) {
-        this.open();
+        this._open();
         this.async(function() {
           window.addEventListener('click', picker.clickListener, false);
         }, 100);
       } else {
         window.removeEventListener('click', picker.clickListener, false);
-        this.close();
+        this._close();
       }
     },
-    toggle: function() {
-      if (this.opened === true) {
-        this.opened = false;
+    _toggle: function() {
+      if (this._opened === true) {
+        this._opened = false;
       } else {
-        this.opened = true;
+        this._opened = true;
       }
     },
-    open: function() {
-      this.opened = true;
+    _open: function() {
+      this._opened = true;
     },
-    close: function() {
-      this.opened = false;
+    _close: function() {
+      this._opened = false;
     }
 
   });
