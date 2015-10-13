@@ -8,6 +8,10 @@ Code distributed by Google as part of the polymer project is also
 subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
 -->
 <link rel="import" href="../polymer/polymer.html">
+<link rel="import" href="../iron-selector/iron-selector.html">
+<link rel="import" href="date-picker-calendar.html">
+<link rel="import" href="date-picker-positioning.html"/>
+<script src="../moment/min/moment.min.js"></script>
 
 <!--
 An element providing a solution to no problem in particular.
@@ -28,23 +32,142 @@ Example:
       :host {
         display: block;
         box-sizing: border-box;
+        position: relative;
       }
-  
-      .author img {
+
+      input.date {
+        border: 1px solid #DDDDDD;
+        background-color: #EEEEEE;
+        color:#555555;
+        min-width: 150px;
+        padding: 8px 10px;
+        margin: 10px;
+        border-radius: 4px;
+        text-align: center;
+      }
+
+      input.date:hover {
+        cursor:pointer;
+        border: 1px solid #44B4E4;
+        box-shadow: 0 1px 1px rgba(0, 0, 0, 0.075) inset, 0 0 8px rgba(102, 175, 233, 0.6);
+      }
+
+      date-picker-calendar {
         display: block;
         float: left;
-        margin-right: 5px;
-        max-height: 100px;
-        max-width: 100px;
       }
+
+      #target {
+        font-family: Arial;
+        font-size: 14px;
+        z-index: 1000;
+      }
+
+      .daterangepicker {
+        display: inline-block;
+        position: absolute;
+        left: 70px;
+      }
+
+      .daterangepicker:before {
+        content: '';
+        position: absolute;
+        top: -2px;
+        display: inline-block;
+        border-right: 7px solid transparent;
+        border-bottom: 7px solid #ccc;
+        border-left: 7px solid transparent;
+        border-bottom-color: rgba(0, 0, 0, 0.2);
+      }
+
+      .daterangepicker:after {
+        position: absolute;
+        top: -1px;
+        display: inline-block;
+        border-right: 6px solid transparent;
+        border-bottom: 6px solid #fff;
+        border-left: 6px solid transparent;
+        content: '';
+      }
+
+      .daterangepicker.opensleft .ranges {
+        float: right;
+      }
+
+      .daterangepicker.opensleft:before {
+        right: 19px;
+      }
+
+      .daterangepicker.opensleft:after {
+        right: 20px;
+      }
+
+      .daterangepicker.opensright .ranges {
+        float: left;
+      }
+
+      .daterangepicker.opensright:before {
+        left: 19px;
+      }
+
+      .daterangepicker.opensright:after {
+        left: 20px;
+      }
+
+      .daterangepicker .ranges {
+        width: 160px;
+        padding: 8px;
+        margin: 4px;
+        border-radius: 4px;
+        border: 1px solid rgba(0, 0, 0, 0.15);
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.176);
+      }
+
+      .daterangepicker .ranges iron-selector {
+        margin: 0;
+        padding: 0;
+        list-style-type: none;
+      }
+
+      .daterangepicker .ranges iron-selector div {
+        padding: 5px 12px;
+        margin-bottom: 8px;
+        font-size: 13px;
+        cursor: pointer;
+        color: #0088CC;
+        border-radius: 5px;
+        background-color: #F5F5F5;
+      }
+
+      .daterangepicker .ranges iron-selector div.iron-selected, .daterangepicker .ranges iron-selector div:hover {
+        background: #0088CC;
+        color: #FFFFFF;
+      }
+
+      #targetShow {
+        display: none;
+      }
+
     </style>
-    <h1>&lt;daterange-picker&gt;</h1>
-    <content></content>
-    <p class="author">
-      <img src="{{author.image}}">
-      Cheers,<br/>
-      <span class="name">{{author.name}}</span>
-    </p>
+    <input id="triggerRange" value="{{selectedRange}}" on-click="toggleOpen" class="date" readonly>
+    <div id="targetShow" class="daterangepicker opensright">
+        <div class="ranges">
+          <iron-selector attr-for-selected="name" selected="{{selected}}">
+            <div on-click="todayClicked" name="today">Today</div>
+            <div on-click="yesterdayClicked" name="yesterday">Yesterday</div>
+            <div on-click="last7DaysClicked" name="last7Days">Last 7 Days</div>
+            <div on-click="last30DaysClicked" name="last30Days">Last 30 Days</div>
+            <div on-click="thisMonthClicked" name="thisMonth">This Month</div>
+            <div on-click="lastMonthClicked" name="lastMonth">Last Month</div>
+            <div on-click="customClicked" name="custom">Custom</div>
+          </iron-selector>
+        </div>
+        <template is="dom-if" if="{{showRanges}}">
+          <date-picker-calendar start="start" start-date="{{startDate}}" end-date="{{endDate}}"></date-picker-calendar>
+          <date-picker-calendar end="end" start-date="{{startDate}}" end-date="{{endDate}}"></date-picker-calendar>
+        </template>
+    </div>
+
   </template>
 
 </dom-module>
@@ -56,95 +179,105 @@ Example:
     is: 'daterange-picker',
 
     properties: {
-
-      /**
-       * `fancy` indicates that the element should don a monocle and tophat,
-       * while checking its pocket watch.
-       */
-      fancy: Boolean,
-
-      /**
-       * Describes the author of the element, but is really just an excuse to
-       * show off JSDoc annotations.
-       *
-       * @type {{name: string, image: string}}
-       */
-      author: {
-        type: Object,
-        // Use `value` to provide a default value for a property, by setting it
-        // on your element's prototype.
-        //
-        // If you provide a function, as we do here, Polymer will call that
-        // _per element instance_.
-        //
-        // We do that to ensure that each element gets its own copy of the
-        // value, rather than having it shared across all instances (via the
-        // prototype).
-        value: function() {
-          return {
-            name:  'Dimitri Glazkov',
-            image: 'http://addyosmani.com/blog/wp-content/uploads/2013/04/unicorn.jpg',
-          };
-        }
+      halign: {
+        type: String,
+        value: 'middle'
       },
-
+      selected: {
+        type: String,
+        value: '',
+        observer: '_selectionChanged'
+      },
+      selectedDate: {
+        type: String,
+        value: ''
+      },
+      startDate: {
+        type: String,
+        value: ''
+      },
+      endDate: {
+        type: String,
+        value: ''
+      },
+      opened: {
+        type: Boolean
+      },
+      relatedTarget: {
+        type: Object,
+        value: {}
+      },
+      showRanges: {
+        type: Boolean
+      },
+      timezone: {
+        type: String,
+        value: ''
+      },
+      selectedRange: {
+        type: String,
+        computed: 'computeDateRange(startDate, endDate)'
+      }
     },
-
-    // Element Lifecycle
-
+    _selectionChanged: function(selected) {
+      this.showRanges = false;
+      if(selected === "custom") { this.showRanges = true; }
+    },
     ready: function() {
-      // `ready` is called after all elements have been configured, but
-      // propagates bottom-up. This element's children are ready, but parents
-      // are not.
-      //
-      // This is the point where you should make modifications to the DOM (when
-      // necessary), or kick off any processes the element wants to perform.
+      this.startDate = moment().subtract(30, "days").format("L");
+      this.endDate = moment().format("L");
+      this.selected = "last30Days";
     },
-
-    attached: function() {
-      // `attached` fires once the element and its parents have been inserted
-      // into a document.
-      //
-      // This is a good place to perform any work related to your element's
-      // visual state or active behavior (measuring sizes, beginning animations,
-      // loading resources, etc).
+    computeDateRange: function(startDate, endDate) {
+      return startDate + ' to ' + endDate;
     },
-
-    detached: function() {
-      // The analog to `attached`, `detached` fires when the element has been
-      // removed from a document.
-      //
-      // Use this to clean up anything you did in `attached`.
+    toggleOpen: function() {
+      var e = this.$.targetShow;
+      if(e.style.display === 'block') {
+        e.style.display = 'none';
+      }
+      else {
+        e.style.display = 'block';
+      }
     },
-
-    // Element Behavior
-
-    /**
-     * The `seed-element-lasers` event is fired whenever `fireLasers` is called.
-     *
-     * @event seed-element-lasers
-     * @detail {{sound: String}}
-     */
-
-    /**
-     * Sometimes it's just nice to say hi.
-     *
-     * @param {string} greeting A positive greeting.
-     * @return {string} The full greeting.
-     */
-    sayHello: function(greeting) {
-      var response = greeting || 'Hello World!';
-      return 'seed-element says, ' + response;
+    todayClicked: function() {
+      this.startDate = moment().format("L");
+      this.endDate = moment().format("L");
+      this.selected = "today";
+      this.toggleOpen();
     },
-
-    /**
-     * Attempt to destroy this element's enemies with a beam of light!
-     *
-     * Or, at least, dispatch an event in the vain hope that someone else will
-     * do the zapping.
-     */
-    fireLasers: function() {
-      this.fire('seed-element-lasers', {sound: 'Pew pew!'});
+    yesterdayClicked: function() {
+      this.startDate = moment().subtract(1, "days").format("L");
+      this.endDate = moment().subtract(1, "days").format("L");
+      this.selected = "yesterday";
+      this.toggleOpen();
+    },
+    last7DaysClicked: function() {
+      this.startDate = moment().subtract(6, "days").format("L");
+      this.endDate = moment().format("L");
+      this.selected = "last7Days";
+      this.toggleOpen();
+    },
+    last30DaysClicked: function() {
+      this.startDate = moment().subtract(30, "days").format("L");
+      this.endDate = moment().format("L");
+      this.selected = "last30Days";
+      this.toggleOpen();
+    },
+    thisMonthClicked: function() {
+      this.startDate = moment().startOf('month').format("L");
+      this.endDate = moment().endOf('month').format("L");
+      this.selected = "thisMonth";
+      this.toggleOpen();
+    },
+    lastMonthClicked: function() {
+      this.startDate = moment().subtract(1, "months").startOf('month').format("L");
+      this.endDate = moment().subtract(1, "months").endOf('month').format("L");
+      this.selected = "lastMonth";
+      this.toggleOpen();
+    },
+    customClicked: function() {
+      this.selected = "custom";
     }
 
   });
