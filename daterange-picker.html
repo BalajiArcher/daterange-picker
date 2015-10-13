@@ -36,6 +36,8 @@ Example:
       }
 
       input.date {
+        position: relative;
+        display: block;
         border: 1px solid #DDDDDD;
         background-color: #EEEEEE;
         color:#555555;
@@ -63,10 +65,18 @@ Example:
         z-index: 1000;
       }
 
+      /*.daterangepicker {*/
+        /*display: inline-block;*/
+        /*position: absolute;*/
+        /*left: 70px;*/
+      /*}*/
+
       .daterangepicker {
+        /*background-color: #FFFFFF;*/
         display: inline-block;
-        position: absolute;
-        left: 70px;
+        position: relative;
+        left: 5px;
+        top: 4px;
       }
 
       .daterangepicker:before {
@@ -144,30 +154,27 @@ Example:
         color: #FFFFFF;
       }
 
-      #targetShow {
-        display: none;
-      }
-
     </style>
-    <input id="triggerRange" value="{{selectedRange}}" on-click="toggleOpen" class="date" readonly>
-    <div id="targetShow" class="daterangepicker opensright">
-        <div class="ranges">
-          <iron-selector attr-for-selected="name" selected="{{selected}}">
-            <div on-click="todayClicked" name="today">Today</div>
-            <div on-click="yesterdayClicked" name="yesterday">Yesterday</div>
-            <div on-click="last7DaysClicked" name="last7Days">Last 7 Days</div>
-            <div on-click="last30DaysClicked" name="last30Days">Last 30 Days</div>
-            <div on-click="thisMonthClicked" name="thisMonth">This Month</div>
-            <div on-click="lastMonthClicked" name="lastMonth">Last Month</div>
-            <div on-click="customClicked" name="custom">Custom</div>
-          </iron-selector>
-        </div>
-        <template is="dom-if" if="{{showRanges}}">
-          <date-picker-calendar start="start" start-date="{{startDate}}" end-date="{{endDate}}"></date-picker-calendar>
-          <date-picker-calendar end="end" start-date="{{startDate}}" end-date="{{endDate}}"></date-picker-calendar>
-        </template>
-    </div>
-
+    <input id="triggerRange" value="{{selectedRange}}" on-click="toggle" class="date" readonly>
+    <template is="dom-if" if="{{opened}}">
+      <div id="targetShow" class="daterangepicker opensright">
+          <div class="ranges">
+            <iron-selector attr-for-selected="name" selected="{{selected}}">
+              <div on-click="todayClicked" name="today">Today</div>
+              <div on-click="yesterdayClicked" name="yesterday">Yesterday</div>
+              <div on-click="last7DaysClicked" name="last7Days">Last 7 Days</div>
+              <div on-click="last30DaysClicked" name="last30Days">Last 30 Days</div>
+              <div on-click="thisMonthClicked" name="thisMonth">This Month</div>
+              <div on-click="lastMonthClicked" name="lastMonth">Last Month</div>
+              <div on-click="customClicked" name="custom">Custom</div>
+            </iron-selector>
+          </div>
+          <template is="dom-if" if="{{showRanges}}">
+            <date-picker-calendar start="start" start-date="{{startDate}}" end-date="{{endDate}}"></date-picker-calendar>
+            <date-picker-calendar end="end" start-date="{{startDate}}" end-date="{{endDate}}"></date-picker-calendar>
+          </template>
+      </div>
+    </template>
   </template>
 
 </dom-module>
@@ -181,7 +188,7 @@ Example:
     properties: {
       halign: {
         type: String,
-        value: 'middle'
+        value: 'right'
       },
       selected: {
         type: String,
@@ -194,25 +201,29 @@ Example:
       },
       startDate: {
         type: String,
+        notify: true,
+        reflectToAttribute: true,
         value: ''
       },
       endDate: {
         type: String,
+        notify: true,
+        reflectToAttribute: true,
         value: ''
       },
       opened: {
-        type: Boolean
+        type: Boolean,
+        value: false,
+        notify: true,
+        observer: '_openedChanged'
       },
       relatedTarget: {
         type: Object,
         value: {}
       },
       showRanges: {
-        type: Boolean
-      },
-      timezone: {
-        type: String,
-        value: ''
+        type: Boolean,
+        value: false
       },
       selectedRange: {
         type: String,
@@ -227,57 +238,111 @@ Example:
       this.startDate = moment().subtract(30, "days").format("L");
       this.endDate = moment().format("L");
       this.selected = "last30Days";
+
+      // positioning
+      var self = this;
+      window.addEventListener('scroll', function() {
+        self.reposition();
+      });
+      window.addEventListener('resize', function() {
+        self.reposition();
+      });
+      this.async(self.reposition);
     },
     computeDateRange: function(startDate, endDate) {
       return startDate + ' to ' + endDate;
-    },
-    toggleOpen: function() {
-      var e = this.$.targetShow;
-      if(e.style.display === 'block') {
-        e.style.display = 'none';
-      }
-      else {
-        e.style.display = 'block';
-      }
     },
     todayClicked: function() {
       this.startDate = moment().format("L");
       this.endDate = moment().format("L");
       this.selected = "today";
-      this.toggleOpen();
+      this.toggle();
     },
     yesterdayClicked: function() {
       this.startDate = moment().subtract(1, "days").format("L");
       this.endDate = moment().subtract(1, "days").format("L");
       this.selected = "yesterday";
-      this.toggleOpen();
+      this.toggle();
     },
     last7DaysClicked: function() {
       this.startDate = moment().subtract(6, "days").format("L");
       this.endDate = moment().format("L");
       this.selected = "last7Days";
-      this.toggleOpen();
+      this.toggle();
     },
     last30DaysClicked: function() {
       this.startDate = moment().subtract(30, "days").format("L");
       this.endDate = moment().format("L");
       this.selected = "last30Days";
-      this.toggleOpen();
+      this.toggle();
     },
     thisMonthClicked: function() {
       this.startDate = moment().startOf('month').format("L");
       this.endDate = moment().endOf('month').format("L");
       this.selected = "thisMonth";
-      this.toggleOpen();
+      this.toggle();
     },
     lastMonthClicked: function() {
       this.startDate = moment().subtract(1, "months").startOf('month').format("L");
       this.endDate = moment().subtract(1, "months").endOf('month').format("L");
       this.selected = "lastMonth";
-      this.toggleOpen();
+      this.toggle();
     },
     customClicked: function() {
       this.selected = "custom";
+    },
+
+
+    _openedChanged: function(oldVal, newVal) {
+      console.log('picker check');
+      var picker = this;
+      if (!this.clickListener) {
+        this.clickListener = function(e) {
+          var bound = picker.target.getBoundingClientRect();
+          picker.async(function() {if (!picker.closeCanceled) picker.close(); else picker.closeCanceled = false});
+        };
+        this.targetClickListener = function(e) {
+          picker.closeCanceled = true;
+        }
+      }
+
+      if (newVal === "true") {
+        this.reposition();
+        this.style.display = "";
+        this.async(function() {
+          window.addEventListener('click', picker.clickListener, false);
+          picker.target.addEventListener('click', picker.targetClickListener, false);
+        }, 100);
+      } else {
+        window.removeEventListener('click', picker.clickListener, false);
+        window.removeEventListener('click', picker.targetClickListener, false);
+//        picker.style.display = "none";
+      }
+    },
+    reposition: function() {
+      console.log('reposition', this.opened);
+      if (this.opened === "true") {
+        var picker = this;
+        var bound = this.relatedTarget.getBoundingClientRect();
+        picker.style.position = "fixed";
+        picker.style.top = (bound.bottom) + "px";
+        if (this.halign === "right") picker.style.left = (bound.right) + "px";
+        else if (this.halign === "left") picker.style.left = (bound.left) + "px";
+        else picker.style.left = ((bound.left + bound.right) / 2) + "px";
+      }
+    },
+    toggle: function() {
+      if (this.opened === true) {
+        this.opened = false;
+      } else {
+        this.opened = true;
+      }
+    },
+    open: function() {
+      this.opened = true;
+    },
+    close: function() {
+      this.opened = false;
     }
 
   });
