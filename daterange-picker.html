@@ -295,7 +295,7 @@ Example:
       var picker = this;
       if (!this.clickListener) {
         this.clickListener = function (e) {
-          if (!e.model) {
+          if (!e.target.classList.contains('daterange-picker') && !e.target.classList.contains('date-picker-calendar')) {
             picker.async(function () {
               if (!picker._closeCanceled) picker._close(); else picker._closeCanceled = false
             });
