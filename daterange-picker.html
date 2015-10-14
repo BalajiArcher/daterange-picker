@@ -63,12 +63,6 @@ Example:
         float: left;
       }
 
-      /*#target {*/
-        /*font-family: Arial;*/
-        /*font-size: 14px;*/
-        /*z-index: 1000;*/
-      /*}*/
-
       #targetShow {
         display: block;
         position: fixed;
@@ -340,9 +334,7 @@ Example:
           // access sibling or parent elements here
           var picker = this.getBoundingClientRect();
           var bound = Polymer.dom(this.root).querySelector('#targetShow');
-
           bound.style.position = "fixed";
-          bound.style.top = (picker.bottom) + "px";
 
           if (this.halign === "right") {
             bound.style.left = (picker.right - picker.width) + "px";
