@@ -80,6 +80,7 @@ Example:
                 border-color: #3071a9;
                 color: #fff;
             }
+
         </style>
 
         <div class="calendar">
@@ -89,7 +90,16 @@ Example:
                     <th on-click="backClicked">
                         <iron-icon icon="arrow-back" size="20"></iron-icon>
                     </th>
-                    <th colspan="5"><span>{{monthName}}</span> <span>{{yearMonth.year}}</span></th>
+                    <th colspan="5">
+                        <template is="dom-if" if="{{start}}">
+                            <span>From - </span>
+                        </template>
+                        <template is="dom-if" if="{{end}}">
+                            <span>To - </span>
+                        </template>
+                        <span>{{monthName}}</span>
+                        <span>{{yearMonth.year}}</span>
+                    </th>
                     <th on-click="nextClicked">
                         <iron-icon icon="arrow-forward" size="20"></iron-icon>
                     </th>
@@ -234,7 +244,7 @@ Example:
         rebuildCalendar: function() {
             this.calendarDates = [];
             this.firstOfMonth = moment([this.yearMonth.year, this.yearMonth.month, 1]);
-            this.monthName = this.firstOfMonth.format("MMMM");
+            this.monthName = this.firstOfMonth.format("MMM");
             this.firstDayOfMonthOffset = this.firstOfMonth.day();
             var columns = [];
 
