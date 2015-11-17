@@ -149,7 +149,7 @@ Example:
 
     </style>
     <input id="triggerRange" value="{{_selectedView}}" on-click="_toggle" class="date" readonly>
-    <template id="targetShowWrap" is="dom-if" if="{{_opened}}">
+    <template id="targetShowWrap" is="dom-if" if="{{openedState}}">
       <div id="targetShow" class$="{{halign}}">
           <div class="ranges">
             <iron-selector attr-for-selected="name" selected="{{_selected}}">
@@ -211,10 +211,11 @@ Example:
         reflectToAttribute: true,
         value: ''
       },
-      _opened: {
+      openedState: {
         type: Boolean,
         value: false,
         notify: true,
+        reflectToAttribute: true,
         observer: '_openedChanged'
       },
       _showRanges: {
@@ -314,22 +315,22 @@ Example:
       }
     },
     _toggle: function() {
-      if (this._opened === true) {
-        this._opened = false;
+      if (this.openedState === true) {
+        this.openedState = false;
       } else {
-        this._opened = true;
+        this.openedState = true;
         this.reposition();
       }
     },
     _open: function() {
-      this._opened = true;
+      this.openedState = true;
       this.reposition();
     },
     _close: function() {
-      this._opened = false;
+      this.openedState = false;
     },
     reposition: function() {
-      if (this._opened === true) {
+      if (this.openedState === true) {
         this.async(function() {
           // access sibling or parent elements here
           var picker = this.getBoundingClientRect();
