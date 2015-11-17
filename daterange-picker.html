@@ -256,37 +256,37 @@ Example:
       this._startDate = moment().format("L");
       this._endDate = moment().format("L");
       this._selected = "today";
-      this._toggle();
+      this._close();
     },
     _yesterdayClicked: function() {
       this._startDate = moment().subtract(1, "days").format("L");
       this._endDate = moment().subtract(1, "days").format("L");
       this._selected = "yesterday";
-      this._toggle();
+      this._close();
     },
     _last7DaysClicked: function() {
       this._startDate = moment().subtract(6, "days").format("L");
       this._endDate = moment().format("L");
       this._selected = "last7Days";
-      this._toggle();
+      this._close();
     },
     _last30DaysClicked: function() {
       this._startDate = moment().subtract(30, "days").format("L");
       this._endDate = moment().format("L");
       this._selected = "last30Days";
-      this._toggle();
+      this._close();
     },
     _thisMonthClicked: function() {
       this._startDate = moment().startOf('month').format("L");
       this._endDate = moment().endOf('month').format("L");
       this._selected = "thisMonth";
-      this._toggle();
+      this._close();
     },
     _lastMonthClicked: function() {
       this._startDate = moment().subtract(1, "months").startOf('month').format("L");
       this._endDate = moment().subtract(1, "months").endOf('month').format("L");
       this._selected = "lastMonth";
-      this._toggle();
+      this._close();
     },
     _customClicked: function() {
       this._selected = "custom";
